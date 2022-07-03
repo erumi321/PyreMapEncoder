@@ -1,30 +1,111 @@
-from asyncio.windows_events import NULL
 import json
 import math
 import struct
-inputFilePath = "input.thing_text"
-outputFilePath = "output.thing_bin"
-inputFileContent = ""
+import os
+import sys
 
-with open(inputFilePath) as fid:
-    lines = fid.readlines()
-    inputFileContent = "".join(lines)
+inputFilePath = "D:\\Pyre\\Content\\Maps\\MatchSiteJ.thing_text"
+outputFilePath = "D:\\Pyre\\Content\\Win\\Maps\\MatchSiteJ.thing_bin"
 
-data = json.loads(inputFileContent)
+f = None
 
-obstacles = data["Obstacles"]
+def encode_json(inputFilePath, outputFilePath):
+    global f
+
+    f = open(outputFilePath, "wb")
+    inputFileContent = ""
+    with open(inputFilePath) as fid:
+        lines = fid.readlines()
+        inputFileContent = "".join(lines)
+
+    data = json.loads(inputFileContent)
+    obstacles = data["Obstacles"]
+
+    FILE_VERSION = 4
+    writeInt32(FILE_VERSION)
+    ITEM_COUNT = len(obstacles)
+    writeInt32(ITEM_COUNT)
+
+    for item in obstacles:
+        print(item["Name"] + (item["Comments"] if "Comments" in item else ""))
+        writeBoolean(True)
+
+        writeBoolean(item["ActivateAtRange"])
+        writeSingle(item["ActivationRange"])
+        writeBoolean(item["Active"])
+        writeSingle(item["Angle"])
+
+        writeInt32(len(item["AttachedIDs"]))
+        for attachedID in item["AttachedIDs"]:
+            writeInt32(attachedID) 
+
+        writeInt32(item["AttachToID"])
+        writeBoolean(item["Collision"])
+        writeColor(item["Color"])
+        writeStringAllowNull(item["Comments"] if "Comments" in item else "")
+        writeString(item["DataType"])
+        writeBoolean(item["FlipHorizontal"])
+        writeBoolean(item["FlipVertical"])
+        writeBoolean(item["Friendly"])
+
+        writeInt32(len(item["GroupNames"]))
+        for groupName in item["GroupNames"]:
+            writeStringAllowNull(groupName)
+
+        writeSingle(item["HealthFraction"])
+        writeStringAllowNull(item["HelpTextId"] if "HelpTextId" in item else "")
+        writeInt32(item["Id"])
+        writeBoolean(item["IgnoreGridManager"])
+        writeBoolean(item["Invert"])
+        writeBoolean(item["Invulnerable"])
+        writeColor(item["LightColor"])
+        writeSingle(item["LightIntensity"])
+        writeSingle(item["LightRadius"])
+        writeSingle(item["LightZ"])
+
+        writeSingle(item["Location"]["X"])
+        writeSingle(item["Location"]["Y"])
+        if "Material" in item and item["Material"] != None:
+            writeBoolean(True)
+            writeSingle(item["Material"]["Ambient"])
+            writeSingle(item["Material"]["Diffuse"])
+            writeSingle(item["Material"]["Directionality"])
+        else:
+            writeBoolean(False)
+
+        writeStringAllowNull(item["Name"] if "Name" in item else "")
+        
+        writeSingle(item["OffsetZ"])
+        writeSingle(item["ParallaxAmount"])
+
+        if "Points" in item:
+            writeInt32(len(item["Points"]))
+            for point in item["Points"]:
+                writeSingle(point["X"])
+                writeSingle(point["Y"])
+        else:
+            writeInt32(0)
+        
+        writeSingle(item["Scale"])
+        writeSingle(item["SkewAngle"])
+        writeSingle(item["SkewScale"])
+
+        writeInt32(item["SortIndex"])
+
+        writeBoolean(item["UseAttackAI"])
+        writeBoolean(item["UseMoveAI"])
+        writeBoolean(item["UseTargetAI"])
+
+    f.close()
 
 FORMATTER_32_BIT = '{:032b}'
 FORMATTER_8_BIT = '{:08b}'
-
-f = open(outputFilePath, "wb")
 
 def writeInt32(number):
     #turn number into binary
     bR = number.to_bytes(4, byteorder='big')
     bR = [bR[3], bR[2], bR[1], bR[0]]
     f.write(bytes(bR))
-
 
 def writeBoolean(value):
     binaryByte = [int(value == True)]
@@ -111,94 +192,9 @@ def writeString(string):
 
 def writeStringAllowNull(string):
     #if string is null print null (shows engine no string values to read)
-    if string == NULL or string == "":
+    if string == None or string == "":
         writeBoolean(False)
     #if string is not null print true to show to read string and then read string like normal
     else:
         writeBoolean(True)
         writeString(string)
-
-
-
-FILE_VERSION = 4
-print("version")
-writeInt32(FILE_VERSION)
-ITEM_COUNT = len(obstacles)
-print("Item Count")
-print(ITEM_COUNT)
-writeInt32(ITEM_COUNT)
-
-for item in obstacles:
-# for i in range(0,17):
-#     item = obstacles[i]
-    print(item["Name"] + (item["Comments"] if "Comments" in item else ""))
-    writeBoolean(True)
-
-    writeBoolean(item["ActivateAtRange"])
-    writeSingle(item["ActivationRange"])
-    writeBoolean(item["Active"])
-    writeSingle(item["Angle"])
-
-    writeInt32(len(item["AttachedIDs"]))
-    for attachedID in item["AttachedIDs"]:
-        writeInt32(attachedID) 
-
-    writeInt32(item["AttachToID"])
-    writeBoolean(item["Collision"])
-    writeColor(item["Color"])
-    writeStringAllowNull(item["Comments"] if "Comments" in item else "")
-    writeString(item["DataType"])
-    writeBoolean(item["FlipHorizontal"])
-    writeBoolean(item["FlipVertical"])
-    writeBoolean(item["Friendly"])
-
-    writeInt32(len(item["GroupNames"]))
-    for groupName in item["GroupNames"]:
-         writeStringAllowNull(groupName)
-
-    writeSingle(item["HealthFraction"])
-    writeStringAllowNull(item["HelpTextId"] if "HelpTextId" in item else "")
-    writeInt32(item["Id"])
-    writeBoolean(item["IgnoreGridManager"])
-    writeBoolean(item["Invert"])
-    writeBoolean(item["Invulnerable"])
-    writeColor(item["LightColor"])
-    writeSingle(item["LightIntensity"])
-    writeSingle(item["LightRadius"])
-    writeSingle(item["LightZ"])
-
-    writeSingle(item["Location"]["X"])
-    writeSingle(item["Location"]["Y"])
-    if "Material" in item and item["Material"] != None:
-        writeBoolean(True)
-        writeSingle(item["Material"]["Ambient"])
-        writeSingle(item["Material"]["Diffuse"])
-        writeSingle(item["Material"]["Directionality"])
-    else:
-        writeBoolean(False)
-
-    writeStringAllowNull(item["Name"] if "Name" in item else "")
-    
-    writeSingle(item["OffsetZ"])
-    writeSingle(item["ParallaxAmount"])
-
-    if "Points" in item:
-        writeInt32(len(item["Points"]))
-        for point in item["Points"]:
-            writeSingle(point["X"])
-            writeSingle(point["Y"])
-    else:
-        writeInt32(0)
-    
-    writeSingle(item["Scale"])
-    writeSingle(item["SkewAngle"])
-    writeSingle(item["SkewScale"])
-
-    writeInt32(item["SortIndex"])
-
-    writeBoolean(item["UseAttackAI"])
-    writeBoolean(item["UseMoveAI"])
-    writeBoolean(item["UseTargetAI"])
-
-
-f.close()
