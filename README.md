@@ -1,4 +1,4 @@
-# PyreMapPacker
+# PyreMapEncoder
 A tool to pack JSON into binaries used by Pyre when loading maps
 
 # What is this?
