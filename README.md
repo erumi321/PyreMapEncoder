@@ -5,7 +5,7 @@ A tool to pack JSON into binaries used by Pyre when loading maps
 This is a tool to pack JSON into a usable binary format read by Pyre when the game loads a map. 
 
 # Installation
-Download the latest [Release](https://github.com/erumi321/PyreMapPacker/releases/). Open command prompt and cd into the directory of the wheel and pip install it, remeber to have .whl at the end of the name.
+Download the latest [Release](https://github.com/erumi321/PyreMapEncoder/releases/). Open command prompt and cd into the directory of the wheel and pip install it, remeber to have .whl at the end of the name.
 
 # How to use this?
 From the command line run the command
